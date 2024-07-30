@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assignment AI</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+            background: linear-gradient(to right, #ffcccb, #ffefd5);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        .form-container {
+            background-color: rgba(255, 228, 181, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            overflow: hidden;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff8c00;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #ff8c00;
+            border-radius: 10px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+        .form-group input[type="text"]:focus,
+        .form-group input[type="file"]:focus {
+            border-color: #ff4500;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
+        }
+        button {
+            padding: 15px 30px;
+            background-color: #ff8c00;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.5em;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        button:hover {
+            background-color: #e67300;
+            transform: scale(1.1);
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #ff4500;
+            text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
+        }
+        .progress-container {
+            margin-top: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .progress {
+            background: rgba(255, 140, 0, 0.2);
+            border-radius: 10px;
+            height: 25px;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #ff8c00;
+            transition: width 0.3s;
+            width: 0;
+        }
+        .progress-text {
+            margin-top: 5px;
+            font-size: 1.1em;
+            color: #ff4500;
+        }
+        .confetti {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .confetti div {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff8c00;
+            border-radius: 50%;
+            animation: confetti 5s linear infinite;
+        }
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="confetti">
+        <div style="top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div style="top: 20%; left: 30%; animation-delay: 1s;"></div>
+        <div style="top: 30%; left: 50%; animation-delay: 2s;"></div>
+        <div style="top: 40%; left: 70%; animation-delay: 3s;"></div>
+    </div>
+    <div class="form-container">
+        <h1>Assignment AI</h1>
+        <form id="uploadForm" action="/generate_questions" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="job_description">Job Description (PDF):</label>
+                <input type="file" id="job_description" name="job_description" accept=".pdf" required>
+            </div>
+            <div class="form-group">
+                <label for="resume">Resume (PDF):</label>
+                <input type="file" id="resume" name="resume" accept=".pdf" required>
+            </div>
+            <div class="form-group">
+                <label for="skills">Skills (Text):</label>
+                <input type="text" id="skills" name="skills" placeholder="e.g., Python, Machine Learning" required>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <div class="progress-container">
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            let progressBar = document.getElementById('progressBar');
+            let progressText = document.getElementById('progressText');
+
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+
+            let width = 0;
+            let interval = setInterval(function() {
+                width += 10;
+                progressBar.style.width = width + '%';
+                progressText.textContent = width + '%';
+                if (width >= 100) {
+                    clearInterval(interval);
+                    event.target.submit();
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>
