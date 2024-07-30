@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Evaluate Answer</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
             font-family: 'Comic Sans MS', 'Comic Sans', cursive;
             background: linear-gradient(to right, #ffcccb, #ffefd5);
             color: #333;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            overflow: auto;
+            overflow: auto; /* Allow scrolling */
             position: relative;
         }
         .container {
@@ -23,58 +24,64 @@
             border-radius: 20px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             padding: 30px;
-            max-width: 800px;
+            max-width: 600px;
             width: 100%;
             text-align: center;
             position: relative;
             z-index: 2;
         }
         h2 {
-            font-size: 2.5em;
+            font-size: 3em;
             color: #ff4500;
             margin-bottom: 20px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
-            background-color: rgba(255, 255, 255, 0.7);
-            padding: 10px;
-            border-radius: 10px;
+            text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
         }
         .form-group label {
+            font-size: 1.2em;
             font-weight: bold;
+            color: #ff8c00;
         }
         .form-control {
-            border-radius: 15px;
-            border: 1px solid #ff4500;
+            border: 2px solid #ff8c00;
+            border-radius: 10px;
+            font-size: 1.1em;
+        }
+        .form-control:focus {
+            border-color: #ff4500;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.5);
         }
         button {
-            padding: 10px 20px;
+            padding: 15px 30px;
             background-color: #ff8c00;
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 15px;
             cursor: pointer;
             font-size: 1.2em;
             transition: background-color 0.3s, transform 0.3s;
-            margin: 10px;
+            margin: 5px;
         }
         button:hover {
             background-color: #e67300;
             transform: scale(1.1);
         }
-        .mt-4 {
-            margin-top: 30px;
-        }
-        .evaluation-result {
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        #evaluationResult {
+            background-color: rgba(255, 228, 181, 0.9);
+            border: 2px solid #ff8c00;
+            border-radius: 10px;
             padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
             text-align: left;
         }
-        .evaluation-result h4 {
+        #evaluationResult h4 {
             color: #ff4500;
         }
-        .evaluation-result p {
-            font-size: 1.2em;
+        #evaluationDetails {
+            list-style-type: none;
+            padding: 0;
+        }
+        #evaluationDetails li {
+            margin-bottom: 10px;
         }
         .confetti {
             position: absolute;
@@ -98,18 +105,25 @@
             0% { transform: translateY(0) rotate(0deg); }
             100% { transform: translateY(100vh) rotate(360deg); }
         }
+        .nav-buttons {
+            margin-top: 20px;
+        }
+        /* Loader Styles */
         .loader {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #ff8c00;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            position: absolute;
-            top: 50%;
+            display: none; /* Hidden by default */
+            position: fixed;
             left: 50%;
+            top: 50%;
             transform: translate(-50%, -50%);
-            z-index: 3;
+            z-index: 999;
+        }
+        .loader div {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #ff8c00; /* Orange */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -124,6 +138,9 @@
         <div style="top: 30%; left: 50%; animation-delay: 2s;"></div>
         <div style="top: 40%; left: 70%; animation-delay: 3s;"></div>
     </div>
+    <div class="loader" id="loader">
+        <div></div>
+    </div>
     <div class="container mt-5">
         <h2>Evaluate Answer</h2>
         <form id="evaluationForm">
@@ -135,18 +152,17 @@
                 <label for="answer">Answer</label>
                 <textarea class="form-control" id="answer" rows="5" required></textarea>
             </div>
-            <button type="submit" class="btn">Evaluate</button>
-            <button type="button" class="btn" id="previousButton">Previous</button>
+            <div class="nav-buttons">
+                <a href="/generate_questions"><button type="button">Previous</button></a>
+                <button type="submit">Evaluate</button>
+            </div>
         </form>
-        <div class="mt-4 evaluation-result" id="evaluationResult" style="display: none;">
+        <div class="mt-4" id="evaluationResult" style="display: none;">
             <h4>Evaluation Result</h4>
-            <p><strong>Score:</strong> <span id="score"></span></p>
-            <p><strong>Grade:</strong> <span id="grade"></span></p>
             <p><strong>Evaluation Text:</strong> <span id="evaluationText"></span></p>
             <h5>Evaluation Details</h5>
             <ul id="evaluationDetails"></ul>
         </div>
-        <div class="loader" id="loader" style="display: none;"></div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -154,7 +170,7 @@
         $(document).ready(function() {
             $('#evaluationForm').on('submit', function(event) {
                 event.preventDefault();
-                $('#loader').show();
+                $('#loader').show(); // Show loader
                 const question = $('#question').val();
                 const answer = $('#answer').val();
 
@@ -164,10 +180,8 @@
                     contentType: 'application/json',
                     data: JSON.stringify({ question: question, answer: answer }),
                     success: function(data) {
-                        $('#loader').hide();
+                        $('#loader').hide(); // Hide loader
                         $('#evaluationResult').show();
-                        $('#score').text(data.score);
-                        $('#grade').text(data.grade);
                         $('#evaluationText').text(data.evaluation_text);
                         const details = data.evaluation_result;
                         $('#evaluationDetails').empty();
@@ -176,17 +190,12 @@
                         }
                     },
                     error: function(error) {
-                        $('#loader').hide();
+                        $('#loader').hide(); // Hide loader on error
                         console.log(error);
                     }
                 });
-            });
-
-            $('#previousButton').on('click', function() {
-                window.history.back();
             });
         });
     </script>
 </body>
 </html>
-
