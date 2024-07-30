@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluate Answer</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+            background: linear-gradient(to right, #ffcccb, #ffefd5);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: auto;
+            position: relative;
+        }
+        .container {
+            background-color: rgba(255, 228, 181, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        h2 {
+            font-size: 2.5em;
+            color: #ff4500;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        .form-control {
+            border-radius: 15px;
+            border: 1px solid #ff4500;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ff8c00;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: background-color 0.3s, transform 0.3s;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #e67300;
+            transform: scale(1.1);
+        }
+        .mt-4 {
+            margin-top: 30px;
+        }
+        .evaluation-result {
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            text-align: left;
+        }
+        .evaluation-result h4 {
+            color: #ff4500;
+        }
+        .evaluation-result p {
+            font-size: 1.2em;
+        }
+        .confetti {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .confetti div {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff8c00;
+            border-radius: 50%;
+            animation: confetti 5s linear infinite;
+        }
+        @keyframes confetti {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #ff8c00;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="confetti">
+        <div style="top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div style="top: 20%; left: 30%; animation-delay: 1s;"></div>
+        <div style="top: 30%; left: 50%; animation-delay: 2s;"></div>
+        <div style="top: 40%; left: 70%; animation-delay: 3s;"></div>
+    </div>
+    <div class="container mt-5">
+        <h2>Evaluate Answer</h2>
+        <form id="evaluationForm">
+            <div class="form-group">
+                <label for="question">Question</label>
+                <textarea class="form-control" id="question" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="answer">Answer</label>
+                <textarea class="form-control" id="answer" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="btn">Evaluate</button>
+            <button type="button" class="btn" id="previousButton">Previous</button>
+        </form>
+        <div class="mt-4 evaluation-result" id="evaluationResult" style="display: none;">
+            <h4>Evaluation Result</h4>
+            <p><strong>Score:</strong> <span id="score"></span></p>
+            <p><strong>Grade:</strong> <span id="grade"></span></p>
+            <p><strong>Evaluation Text:</strong> <span id="evaluationText"></span></p>
+            <h5>Evaluation Details</h5>
+            <ul id="evaluationDetails"></ul>
+        </div>
+        <div class="loader" id="loader" style="display: none;"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#evaluationForm').on('submit', function(event) {
+                event.preventDefault();
+                $('#loader').show();
+                const question = $('#question').val();
+                const answer = $('#answer').val();
+
+                $.ajax({
+                    url: '/evaluate',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ question: question, answer: answer }),
+                    success: function(data) {
+                        $('#loader').hide();
+                        $('#evaluationResult').show();
+                        $('#score').text(data.score);
+                        $('#grade').text(data.grade);
+                        $('#evaluationText').text(data.evaluation_text);
+                        const details = data.evaluation_result;
+                        $('#evaluationDetails').empty();
+                        for (const [criterion, score] of Object.entries(details)) {
+                            $('#evaluationDetails').append(`<li><strong>${criterion}:</strong> ${score}</li>`);
+                        }
+                    },
+                    error: function(error) {
+                        $('#loader').hide();
+                        console.log(error);
+                    }
+                });
+            });
+
+            $('#previousButton').on('click', function() {
+                window.history.back();
+            });
+        });
+    </script>
+</body>
+</html>
+
